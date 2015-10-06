@@ -1,0 +1,6 @@
+## runTests
+
+BiocGenerics:::testPackage("SICtools")
+
+
+

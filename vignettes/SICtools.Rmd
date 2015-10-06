@@ -1,0 +1,101 @@
+---
+title: "Using the SICtools Package"
+author: "Xiaobin Xing"
+date: "March 15, 2015"
+output:
+  pdf_document:
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+  html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+<!--
+%\VignetteEngine{knitr::rmarkdown}
+%\VignetteIndexEntry{Using SICtools}
+-->
+
+# Introduction to SICtools
+
+High-through sequencing has become fundamental for deciphering sequence variants between two paired-samples in 
+different conditions, which has been vastly used in detecting somatic variants between tumor and matched normal samples 
+in current research of oncogenesis.The *SICtools package* is designed to find SNV/Indel differences between two bam files 
+with near relationship in a way of pairwise comparison thourgh parsing the allele frequency of genotypes (single nucleotide
+and short indel) at each base position across the genome region of interest. The difference is inferred by two complementary measurements, fisher exact test *p.value* and euclidean distance *d.value*. For SNV comparison, the internal input is the base count (A,T,G,C) in a given position, parsed from pileup output from the two bam files; for indel comparison, reads for different indel alleles that span no less than 2bp on both sides of extended indel region (e.g. homopolymer region) are counted as internal input.The candidate variants with relatively lower *p.value* and higher *d.value* can thus be easily identified from the output of SICtools.
+
+# Getting started with SICtools
+Getting started with SICtools for inspection of SNV/Indel difference between two bam files is quite easy. Two critical functions (`snpDiff` and `indelDiff`) will be available in R session with loading the package.
+
+```{r message = FALSE}
+library(SICtools)
+```
+
+# Function snpDiff()
+
+## Input
+
+The essential capability provided by `SICtools` is its input. The two bam files to be compared should be aligned by same aligner of the same version (important!) and the same reference genome. In theory, the two bam files should be in near relationship, which means that the SNV/Indel differences are not expected too many. The input coordinate for region of interest should be the same format as the reference genome. The argument list of function `snpDiff` is below,
+
+
+*snpDiff(bam1, bam2, refFsa, regChr, regStart, regEnd, minBaseQuality = 13, minMapQuality = 0, nCores = 1, pValueCutOff = 0.05, baseDistCutOff = 0.1, verbose = TRUE)*
+
+
+
+Except the three main paramters (`bam1`,`bam2` and `refFsa`), the region coordinate arguments (`regChr`,`regStart` and `regEnd`) are necessary to restrict the genome region of interest, since the comparison would be time consuming if the chromosome units of the species are very long, for example, human. Meanwhile, these coordinate arguments make the parallel calculation possible. For instance, the long chromosome could be chunked into pieces and compared in parallel, and the final output would be combined together. Even in the genome region of interest, a parameter `nCores` is to set the threads for parallel calculation, which will greatly short the time in the case of long region input.
+
+In order to control the input quality of reads, two quality filter arguments (`minBaseQuality` and `minMapQuality`) are provided. The `minBaseQuality` score is stranded Phred score of Sanger format for each base. The 'minMapQuality' score is based on the aligner used, which means differnt threshods would be adopted to control the mapping quality of the whole reads for different aligners.
+
+Two output control parameters (`pValueCutOff` and `baseDistCutOff`) are used to filter the output. Since most of genomic positions to compare are the same in theory, `p.value` of exact fisher test would be `1`  and `d.value` of Euclidean distance would be `0` in thousands, even millons of positions, which is not expected as output, and will be excluded from the final output. The default `pValueCutOff = 0.05, baseDistCutOff = 0.1` is proper for comparison between germline samples. Lower `baseDistCutOff` and higher `pValueCutOff` is probably needed for somatic samples.
+
+If verbose = TRUE, the progress information of genomic positions will be showed on screen 
+
+## Output
+The output of SNV/Indel comparisons is a `data.frame`. It will report the base count/read count for each allele, p.value (from fisher exact test) and d.value (from euclidean distance) filtered by pre-defined cutoff of p.value and d.value. If nothing difference, NULL will be returned.
+
+## Example
+The example will detect SNV differences between two bam files in the region "chr04:962501-1026983". Setting "pValueCutOff=1,baseDistCutOff=0" will detect tiny differences, while the exact same genotype positions will be excluded from output by default.
+
+```{r}
+bam1 <- system.file(package='SICtools','extdata','example1.bam')
+bam2 <- system.file(package='SICtools','extdata','example2.bam')
+refFsa <- system.file(package='SICtools','extdata','example.ref.fasta')
+
+snpDiffDf <- snpDiff(bam1,bam2,refFsa,'chr04',962501,1026983,pValueCutOff=1,baseDistCutOff=0)
+snpDiffDf
+```
+A simple scatter plot will show the most different candidates locating at top-right.
+
+*plot(-log10(snpDiffDf$p.value),snpDiffDf$d.value,col='brown')*
+
+
+For more complex situation with hundreds of outputs, sorting the data frame by p.value and d.value would be very helpful to set custom cutoffs after mannually check.
+```{r}
+snpDiffDfSort <- snpDiffDf[order(snpDiffDf$p.value,snpDiffDf$d.value),]
+snpDiffDfSort
+```
+# Function indelDiff()
+Detecting indel differences between two bam files is usually mislead by finding two indel lists seperately and then overlap them. Instead, `indelDiff` will firstly extract the read counts of each indel genotypes in two bam files at the same genomic position, and then calculate `p.value` of fisher exact test and `d.value` of Euclidean distance for this position. In case that the reads can't span the long indel, only reads that cover more than 2bp adjacent the given indel region are taken into consideration.
+
+## Input and Output
+The input of `indelDiff` is the same as `snpDiff`, however, the output genotype names of `indelDiff` are different. For function `snpDiff`, 'A', 'T','G' and 'C' are four informative base, while for the output of `indelDiff`, the three genotypes are 'ref','altGt1' and 'altGt2', which means two alternative indel genotypes will be considered in the given position in both bam files.
+
+## Example
+A simple input example and its output is
+
+```{r}
+indelDiffDf <- indelDiff(bam1,bam2,refFsa,'chr07',828514,828914,pValueCutOff=1,gtDistCutOff=0)
+indelDiffDfSort <- indelDiffDf[order(indelDiffDf$p.value,indelDiffDf$d.value),]
+indelDiffDfSort
+```
+
+# Conclusion
+Detecting SNV/Indel difference between two bam files is frequently used in many research fields of high-throughput sequencing. We thus provide these two simple R functions to make the comparison easy and accurate. Though the cutoff of `p.value` and `d.value` of `SICtools` are usually determined by cutsom data, a scatter plot `-log10(p.value) vs. d.value` is very helpful to achieve it based on our own expericence.
+
+# Session Info
+The following package and versions were used in the production of this vignette.
+```{r}
+sessionInfo()
+```
