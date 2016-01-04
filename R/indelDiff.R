@@ -23,7 +23,7 @@ function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 	gtDistCutOff <- as.numeric(gtDistCutOff)
 	
 	## number of cores used
-	registerDoMC(cores=nCores)
+	registerDoParallel(cores=nCores)
 	
 	## get mpileupPlus result; the samtools will calculate BAQ for SNP around indel
 	pathSICtools <- system.file(package = "SICtools","etc","samtools2SIC")
