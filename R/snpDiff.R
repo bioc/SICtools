@@ -18,7 +18,7 @@ function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 	minMapQuality <- as.numeric(minMapQuality)
 	
 	## number of cores used
-	registerDoMC(cores=nCores)
+	registerDoParallel(cores=nCores)
 	
 	################################ function to call difference ##############################
 	calcInfoRange <- function(x){
@@ -34,8 +34,14 @@ function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 				rowMaxs(countMtx[,6:9,drop=FALSE])/rowSums(countMtx[,6:9,drop=FALSE]) > 0.95 & 
 				max.col(countMtx[,1:4,drop=FALSE]) == max.col(countMtx[,6:9,drop=FALSE])
 		
+#		maxBaseIndex <- rowMaxs(countMtx[,,drop=FALSE],cols=1:4)/rowSums(countMtx[,,drop=FALSE],cols=1:4) > 0.95 & 
+#				rowMaxs(countMtx[,,drop=FALSE],cols=6:9)/rowSums(countMtx[,,drop=FALSE],cols=6:9) > 0.95 & 
+#				colMaxs(countMtx[,,drop=FALSE],cols=1:4) == colMaxs(countMtx[,,drop=FALSE],cols=6:9)
+		
 		## all 0 test
 		allZeroIndex <- rowSums(countMtx[,1:4,drop=FALSE]) == 0 | rowSums(countMtx[,6:9,drop=FALSE]) == 0
+#		allZeroIndex <- rowSums(countMtx[,,drop=FALSE],cols=1:4) == 0 | rowSums(countMtx[,,drop=FALSE],cols=6:9) == 0
+		
 		
 		## test index
 		testIndex <- !dupIndex & !maxBaseIndex & !allZeroIndex
@@ -75,6 +81,22 @@ function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 			testMtx <- testTmp2[,-1,drop=FALSE]
 			class(testMtx) <- 'numeric'
 			testDf <- data.frame(chr = testTmp2[,1],testMtx,stringsAsFactors=FALSE)
+			
+			## for genotype duplicated positions, trace back
+			countMtxDup <- countMtx[!maxBaseIndex & !allZeroIndex,]
+			countMtxDupDf <- as.data.frame(countMtxDup[duplicated(countMtxDup[,-11]),,drop=FALSE],stringsAsFactors=FALSE)
+			
+			if(nrow(countMtxDupDf) > 0){
+				
+				countMtxDupDfFull <- cbind(countMtxDupDf,testDf[match(apply(countMtxDupDf[,-11],1,paste,collapse=' '),apply(testDf[,3:12],1,paste,collapse=' ')),c('X12','X13')])
+				countMtxDupDfFull <- countMtxDupDfFull[!is.na(countMtxDupDfFull$X12),]
+				countMtxDupDfFull[,'X14'] <- unique(testDf$chr)
+				countMtxDupDfFull <- countMtxDupDfFull[,c(14,11,1:10,12,13)]
+				colnames(countMtxDupDfFull) <- colnames(testDf)
+				testDf <- rbind(testDf,countMtxDupDfFull)
+				testDf <- testDf[order(testDf[,'X1']),]
+			}
+			
 			return(testDf)          
 		}
 	}
