@@ -1,5 +1,5 @@
 import(Rsamtools)
-import(doMC)
+import(doParallel)
 import(methods)
 import(stringr)
 import(Biostrings)
