@@ -83,18 +83,22 @@ function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 			testDf <- data.frame(chr = testTmp2[,1],testMtx,stringsAsFactors=FALSE)
 			
 			## for genotype duplicated positions, trace back
-			countMtxDup <- countMtx[!maxBaseIndex & !allZeroIndex,]
-			countMtxDupDf <- as.data.frame(countMtxDup[duplicated(countMtxDup[,-11]),,drop=FALSE],stringsAsFactors=FALSE)
+			countMtxDup <- countMtx[!maxBaseIndex & !allZeroIndex,,drop=FALSE]
+			countMtxDupDf <- as.data.frame(countMtxDup[duplicated(countMtxDup[,-11,drop=FALSE]),,drop=FALSE],stringsAsFactors=FALSE)
 			
-			if(nrow(countMtxDupDf) > 0){
+			if(nrow(countMtxDupDf) > 0 & nrow(testDf) > 0){
 				
-				countMtxDupDfFull <- cbind(countMtxDupDf,testDf[match(apply(countMtxDupDf[,-11],1,paste,collapse=' '),apply(testDf[,3:12],1,paste,collapse=' ')),c('X12','X13')])
-				countMtxDupDfFull <- countMtxDupDfFull[!is.na(countMtxDupDfFull$X12),]
-				countMtxDupDfFull[,'X14'] <- unique(testDf$chr)
-				countMtxDupDfFull <- countMtxDupDfFull[,c(14,11,1:10,12,13)]
-				colnames(countMtxDupDfFull) <- colnames(testDf)
-				testDf <- rbind(testDf,countMtxDupDfFull)
-				testDf <- testDf[order(testDf[,'X1']),]
+				countMtxDupDfFull <- cbind(countMtxDupDf,testDf[match(apply(countMtxDupDf[,-11,drop=FALSE],1,paste,collapse=' '),apply(testDf[,3:12],1,paste,collapse=' ')),c('X12','X13')])
+				countMtxDupDfFull <- countMtxDupDfFull[!is.na(countMtxDupDfFull$X12),,drop=FALSE]
+				
+				if(nrow(countMtxDupDfFull) > 0){
+					countMtxDupDfFull[,'X14'] <- unique(testDf$chr)
+					countMtxDupDfFull <- countMtxDupDfFull[,c(14,11,1:10,12,13)]
+					colnames(countMtxDupDfFull) <- colnames(testDf)
+					testDf <- rbind(testDf,countMtxDupDfFull)
+					testDf <- testDf[order(testDf[,'X1']),]
+				}
+				
 			}
 			
 			return(testDf)          
