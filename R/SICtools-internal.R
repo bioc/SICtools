@@ -73,7 +73,7 @@ function(ppIndel,rowIndex,refFsa,pValueCutOff,gtDistCutOff,verbose){
 		## select two most alts
 		if(ncol(gtMtx) >= 3){  
 			
-			gtCountMtx <- gtMtx[,c('*',names(sort(colSums(gtMtx[,which(colnames(gtMtx)  != '*'),drop=FALSE]),
+			gtCountMtx <- gtMtx[,c('*',names(sort(colSums(gtMtx[,which(colnames(gtMtx)  != '*')]),
 											decreasing=TRUE)[1:2]))]     
 			
 		}else if(ncol(gtMtx) == 2){
@@ -89,7 +89,7 @@ function(ppIndel,rowIndex,refFsa,pValueCutOff,gtDistCutOff,verbose){
 		gtPvalue <- ifelse(is.na(gtPvalue),1,gtPvalue)
 		gtDist <- ifelse(is.na(gtDist),0,gtDist)
 		
-		if(gtPvalue < pValueCutOff & gtDist > gtDistCutOff){
+		if(gtPvalue <= pValueCutOff & gtDist >= gtDistCutOff){
 			
 			## format genotype to output
 			delSeqLen <- as.numeric(str_extract(colnames(gtCountMtx),'-\\d+'))
@@ -113,21 +113,23 @@ function(ppIndel,rowIndex,refFsa,pValueCutOff,gtDistCutOff,verbose){
 			if(ncol(gtCountMtx) == 3){
 				
 				## output table
-				tmpOut <- as.character(c(rowDat[,2:3],colnames(gtCountMtx),
+				tmpOut <- c(rowDat[,2:3],colnames(gtCountMtx),
 								gtCountMtx[1,1], gtCountMtx[1,2],gtCountMtx[1,3],
 								gtCountMtx[2,1], gtCountMtx[2,2],gtCountMtx[2,3],
-								pValue = format(gtPvalue,digits=3,scientific=TRUE),
-								gtDist = format(gtDist,digits=3,scientific=TRUE)))
-				
+								pValue = gtPvalue,
+								gtDist = gtDist)
+						
 			}else if(ncol(gtCountMtx) < 3){
 				
 				## output table
-				tmpOut <- as.character(c(rowDat[,2:3],colnames(gtCountMtx),NA,
+				tmpOut <- c(rowDat[,2:3],colnames(gtCountMtx),NA,
 								gtCountMtx[1,1], gtCountMtx[1,2],NA,
 								gtCountMtx[2,1], gtCountMtx[2,2],NA,
-								format(gtPvalue,digits=3,scientific=TRUE),
-								format(gtDist,digits=3,scientific=TRUE)))
+								pValue = gtPvalue,
+								gtDist = gtDist)
 			}
+			
+			return(tmpOut)
 		}
 	}
 }

@@ -1,7 +1,7 @@
 Package: SICtools
 Type: Package
 Title: Find SNV/Indel differences between two bam files with near relationship
-Version: 1.1.0
+Version: 1.1.1
 Date: 2014-12-11
 Author: Xiaobin Xing, Wu Wei
 Maintainer: Xiaobin Xing <xiaobinxing0316@gmail.com>
@@ -15,7 +15,7 @@ Description: This package is to find SNV/Indel differences between two
 License: GPL (>=2)
 LazyLoad: Yes
 Depends: R (>= 3.0.0), methods, Rsamtools (>= 1.18.1), doParallel (>= 1.0.8), Biostrings (>= 2.32.1), stringr (>= 0.6.2), matrixStats
-               (>= 0.10.0)
+               (>= 0.10.0), plyr (>= 1.8.3)
 Imports: foreach, IRanges, GenomicRanges
 Suggests: knitr, RUnit, BiocGenerics
 biocViews: Alignment, Sequencing, Coverage, SequenceMatching, QualityControl, DataImport, Software, SNP, VariantDetection
