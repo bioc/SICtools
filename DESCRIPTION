@@ -15,8 +15,7 @@ Description: This package is to find SNV/Indel differences between two
 License: GPL (>=2)
 LazyLoad: Yes
 Depends: R (>= 3.0.0), methods, Rsamtools (>= 1.18.1), doParallel (>= 1.0.8), Biostrings (>= 2.32.1), stringr (>= 0.6.2), matrixStats
-               (>= 0.10.0), plyr (>= 1.8.3)
-Imports: foreach, IRanges, GenomicRanges
+               (>= 0.10.0), plyr (>= 1.8.3), GenomicRanges (>= 1.22.4), IRanges (>= 2.4.8) 
 Suggests: knitr, RUnit, BiocGenerics
 biocViews: Alignment, Sequencing, Coverage, SequenceMatching, QualityControl, DataImport, Software, SNP, VariantDetection
 VignetteBuilder: knitr
