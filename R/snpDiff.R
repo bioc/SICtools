@@ -2,26 +2,6 @@ snpDiff <-
 		function(bam1,bam2,refFsa,regChr,regStart,regEnd,minBaseQuality = 13,
 				minMapQuality = 0,nCores = 1,pValueCutOff= 0.05,baseDistCutOff = 0.1,verbose=TRUE){
 	
-	
-	## for test
-#	library(doParallel)
-#	library(Rsamtools)
-#	library(matrixStats)
-#	library(plyr)
-#	
-#	bam1 <- '/g/steinmetz/xing/SICtoolsDebug/20160319/debug/ER.sorted.bam'
-#	bam2 <- '/g/steinmetz/xing/SICtoolsDebug/20160319/debug/d1c.0.01.bam'
-#	refFsa <- '/g/steinmetz/xing/SICtoolsDebug/20160319/debug/S288c.fa'
-#	regChr <- 'chr1'
-#	regStart <- 1
-#	regEnd <- 230218
-#	minBaseQuality <- 13
-#	minMapQuality <- 0
-#	nCores <- 10
-#	pValueCutOff <- 0.05
-#	baseDistCutOff <- 0.1
-#	verbose <- TRUE
-	
 	## disable dimention dropping for matrix
 	`[` <- function(...) base::`[`(...,drop=FALSE)
 	
