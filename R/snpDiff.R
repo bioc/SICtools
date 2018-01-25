@@ -94,7 +94,7 @@ snpDiff <-
 	ppFiles <- PileupFiles(c(bam1,bam2))
 	
 	## split into 10M block
-	regSplit <- shift(as(breakInChunks(regEnd - regStart + 1,1e7L),'IRanges'),regStart-1)
+	regSplit <- shift(as(breakInChunks(regEnd - regStart + 1, chunksize=1e7L),'IRanges'),regStart-1)
 	
 	## for each region
 	regSplitDiffFunc <- function(splitIndex){
