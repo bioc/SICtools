@@ -20,3 +20,4 @@ Suggests: knitr, RUnit, BiocGenerics
 biocViews: Alignment, Sequencing, Coverage, SequenceMatching, QualityControl, DataImport, Software, SNP, VariantDetection
 VignetteBuilder: knitr
 Packaged: 2016-01-04 15:11:21 UTC; xing
+Config/Bioconductor/UnsupportedPlatforms: windows
